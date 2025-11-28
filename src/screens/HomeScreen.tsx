@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, ActivityIndicator, SafeAreaView, Button, Text } from 'react-native';
+import { View, FlatList, ActivityIndicator, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
-// Hooks de lógica - CAMINHO CORRIGIDO
+// Hooks
 import { 
   usePokemonList, 
   usePokemonSearch, 
   usePokemonTypeFilter 
 } from '../hooks';
 
-// Componentes de UI - CAMINHO CORRIGIDO
+// Componentes
 import { 
   OfflineBanner,
   ErrorRetry,
@@ -21,8 +23,8 @@ import {
   TypeFilterModal
 } from '../components';
 
-// Estilos e constantes
-import { commonStyles } from '../constants/theme';
+// Tema
+import { commonStyles, pokemonThemeColors } from '../constants/theme';
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -35,8 +37,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   useEffect(() => {
-    // Carrega a lista de tipos para o modal
     filter.fetchAllTypes();
+    navigation.setOptions({ headerShown: false });
   }, []);
   
   const navigateToDetail = (pokemonName: string) => {
@@ -46,7 +48,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const handleApplyFilter = (typeName: string | null) => {
     filter.applyFilter(typeName);
     setActiveFilter(typeName);
-    search.clearSearch(); // Limpa a busca ao aplicar filtro
+    search.clearSearch();
   }
   
   const handleClearAll = () => {
@@ -55,53 +57,75 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setActiveFilter(null);
   }
 
-  // Renderiza o cabeçalho com a barra de busca e botões
+  // --- Header Customizado ---
   const renderHeader = () => (
-    <View style={commonStyles.headerContainer}>
-      <SearchBar query={search.query} setQuery={search.setQuery} />
-      <View style={commonStyles.buttonRow}>
-        <Button 
-          title={activeFilter ? `Filtro: ${activeFilter}` : "Filtrar por Tipo"} 
-          onPress={() => setModalVisible(true)} 
-          color="#007aff" 
-        />
+    <View style={styles.headerWrapper}>
+      <Text style={styles.headerTitle}>Pokédex</Text>
+      <Text style={styles.headerSubtitle}>
+        {activeFilter ? `Filtrando por: ${activeFilter}` : 'Busque seu Pokémon favorito'}
+      </Text>
+
+      <View style={styles.searchContainer}>
+        <SearchBar query={search.query} setQuery={search.setQuery} />
+      </View>
+
+      <View style={styles.filterRow}>
+        <TouchableOpacity 
+          style={[styles.glassButton, activeFilter ? styles.activeGlassButton : null]} 
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={[styles.glassButtonText, activeFilter ? styles.activeGlassText : null]}>
+             ⚡ Filtrar por Tipo
+          </Text>
+        </TouchableOpacity>
+
         {(search.query.length > 0 || activeFilter) && (
-          <Button title="Limpar" onPress={handleClearAll} color="#e63946" />
+          <TouchableOpacity 
+            style={[styles.glassButton, { backgroundColor: pokemonThemeColors.accent }]} 
+            onPress={handleClearAll}
+          >
+            <Text style={[styles.glassButtonText, { color: 'white' }]}>✕ Limpar</Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
   );
 
-  // Decide qual conteúdo exibir com base no estado (Busca, Filtro ou Lista)
+  // --- Conteúdo Principal ---
   const renderContent = () => {
-    // 1. Estado de Busca (Prioridade)
+    // 1. Loading Busca
     if (search.isLoading) {
-      return <ActivityIndicator size="large" color="#007aff" style={commonStyles.centered} />;
+      return (
+        <View style={commonStyles.centered}>
+          <ActivityIndicator size="large" color="#FFF" />
+          <Text style={{ color: 'white', marginTop: 10 }}>Procurando...</Text>
+        </View>
+      );
     }
+    
+    // 2. Erro Busca
     if (search.error) {
-      return <ErrorRetry message={search.error.message} onRetry={search.clearSearch} />;
+      return (
+        <View style={styles.whiteCardContainer}>
+           <ErrorRetry message={search.error.message} onRetry={search.clearSearch} />
+        </View>
+      );
     }
+
+    // 3. Resultado Busca (ATIVAMOS O MODO SEARCH AQUI)
     if (search.query.length > 0 && search.result) {
       return (
         <View style={commonStyles.searchResultContainer}>
           <MemoPokemonCardFull
             pokemon={search.result}
             onPress={() => navigateToDetail(search.result.name)}
+            isSearch={true} // <--- AQUI ESTÁ A CORREÇÃO
           />
         </View>
       );
     }
-    if (search.query.length > 0 && !search.result && !search.isLoading) {
-       return <Text style={commonStyles.centeredText}>Nenhum Pokémon encontrado para "{search.query}".</Text>;
-    }
-    
-    // 2. Estado de Filtro (Se não houver busca ativa)
-    if (filter.isLoading) {
-      return <ActivityIndicator size="large" color="#007aff" style={commonStyles.centered} />;
-    }
-    if (filter.error) {
-      return <ErrorRetry message={filter.error.message} onRetry={() => handleApplyFilter(null)} />;
-    }
+
+    // 4. Filtro Ativo (MODO GRADE PADRÃO)
     if (activeFilter && filter.filteredList.length > 0) {
       return (
         <FlatList
@@ -110,6 +134,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <MemoPokemonCardFull
               pokemon={item}
               onPress={() => navigateToDetail(item.name)}
+              isSearch={false} // Padrão
             />
           )}
           keyExtractor={(item) => String(item.id)}
@@ -118,56 +143,163 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         />
       );
     }
-    if (activeFilter && filter.filteredList.length === 0 && !filter.isLoading) {
-       return <Text style={commonStyles.centeredText}>Nenhum Pokémon do tipo "{activeFilter}" encontrado.</Text>;
-    }
 
-    // 3. Estado de Lista Paginada (Padrão)
-    if (list.isLoading && list.pokemonList.length === 0) {
-      return <SkeletonLoader />;
-    }
-    if (list.error && list.pokemonList.length === 0) {
-      return <ErrorRetry message={list.error.message} onRetry={list.retry} />;
-    }
+    // 5. Lista Infinita
+    if (list.isLoading && list.pokemonList.length === 0) return <SkeletonLoader />;
     
     return (
       <FlatList
         data={list.pokemonList}
         renderItem={({ item }) => (
           <MemoPokemonCard 
-            url={item.url} // Passamos a URL para extrair o ID
+            url={item.url} 
             name={item.name}
             onPress={() => navigateToDetail(item.name)} 
           />
         )}
         keyExtractor={(item) => item.name}
         numColumns={2}
-        contentContainerStyle={commonStyles.listContainer}
+        contentContainerStyle={[commonStyles.listContainer, { paddingBottom: 100 }]}
         onEndReached={list.loadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={() => (
-          list.isLoading ? <ActivityIndicator size="large" color="#007aff" style={{ marginVertical: 20 }} /> : null
-        )}
-        ListEmptyComponent={() => (
-          !list.isLoading ? <Text style={commonStyles.centeredText}>Nenhum Pokémon encontrado.</Text> : null
+          list.isLoading ? 
+            <ActivityIndicator size="large" color={pokemonThemeColors.logoBlue} style={{ marginVertical: 20 }} /> 
+            : <View style={{ height: 50 }} />
         )}
       />
     );
   };
 
   return (
-    <SafeAreaView style={commonStyles.container}>
-      <OfflineBanner />
-      {renderHeader()}
-      {renderContent()}
-      <TypeFilterModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSelectType={handleApplyFilter}
-        types={filter.allTypes}
-      />
-    </SafeAreaView>
+    <LinearGradient
+      colors={[pokemonThemeColors.logoBlue, '#89C4F4', '#F0F0F0']}
+      locations={[0, 0.4, 0.9]}
+      style={styles.mainContainer}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <OfflineBanner />
+
+        <View style={styles.decorativePokeball}>
+           <View style={styles.pokeballLine} />
+           <View style={styles.pokeballCircle} />
+        </View>
+
+        {renderHeader()}
+        
+        <View style={styles.contentWrapper}>
+          {renderContent()}
+        </View>
+
+        <TypeFilterModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onSelectType={handleApplyFilter}
+          types={filter.allTypes}
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+  },
+  decorativePokeball: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(255,255,255,0.1)', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 0,
+  },
+  pokeballLine: {
+    position: 'absolute',
+    width: '100%',
+    height: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  pokeballCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 20,
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'transparent',
+  },
+  headerWrapper: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
+    zIndex: 1,
+  },
+  headerTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: 'white',
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 15,
+    fontWeight: '600',
+  },
+  searchContainer: {
+    marginBottom: 15,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  glassButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  activeGlassButton: {
+    backgroundColor: pokemonThemeColors.logoYellow,
+    borderColor: '#FFF',
+  },
+  glassButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  activeGlassText: {
+    color: pokemonThemeColors.logoBlue,
+  },
+  contentWrapper: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.6)', 
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingTop: 10,
+    marginHorizontal: 0,
+    overflow: 'hidden', 
+  },
+  whiteCardContainer: {
+    margin: 20,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    elevation: 2
+  }
+});
 
 export default HomeScreen;

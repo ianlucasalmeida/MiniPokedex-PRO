@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-// Cores dos tipos de Pokémon
+// Cores dos tipos de Pokémon (Mantemos igual, pois são padrão da franquia)
 export const typeColors: { [key: string]: string } = {
   normal: '#A8A878',
   fire: '#F08030',
@@ -20,14 +20,29 @@ export const typeColors: { [key: string]: string } = {
   dark: '#705848',
   steel: '#B8B8D0',
   fairy: '#EE99AC',
-  todos: '#4a4e69', // Cor customizada para o botão "todos"
+  todos: '#2A75BB', // Azul do logo para o botão "todos"
 };
 
-// Estilos comuns usados em múltiplas telas
+// --- Cores Temáticas "Anime / Logo" ---
+export const pokemonThemeColors = {
+  logoYellow: '#FFCB05', // Amarelo principal do Logo
+  logoBlue: '#2A75BB',   // Azul da borda do Logo
+  primary: '#FFCB05',    // Usaremos o amarelo como primária
+  secondary: '#2A75BB',  // Azul como secundária
+  accent: '#FF3333',     // Vermelho (botões de ação/pokebola)
+  background: '#F2F2F2', // Cinza muito claro para o fundo geral
+  cardBackground: '#FFFFFF',
+  textPrimary: '#2A75BB', // Texto principal em Azul (fica ótimo no amarelo ou branco)
+  textSecondary: '#555555',
+  border: '#3C5AA6',      // Um azul mais escuro para bordas
+  offlineWarning: '#FFD700',
+};
+
+// Estilos comuns atualizados
 export const commonStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: pokemonThemeColors.background,
   },
   centered: {
     flex: 1,
@@ -37,65 +52,75 @@ export const commonStyles = StyleSheet.create({
   centeredText: {
     textAlign: 'center',
     fontSize: 16,
-    color: '#555',
+    color: pokemonThemeColors.textSecondary,
     marginTop: 40,
     paddingHorizontal: 20,
   },
   listContainer: {
-    padding: 8,
+    padding: 10,
   },
+  // Header agora é Amarelo com borda Azul (Estilo Logo)
   headerContainer: {
-    padding: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    padding: 16,
+    backgroundColor: pokemonThemeColors.logoYellow,
+    borderBottomWidth: 4, // Borda grossa estilo anime
+    borderBottomColor: pokemonThemeColors.logoBlue,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 8,
+    marginBottom: 10,
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
+    justifyContent: 'space-between',
+    marginTop: 12,
+    gap: 10,
   },
   searchBar: {
-    height: 44,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    paddingHorizontal: 15,
+    height: 50,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25, // Bem arredondado
+    paddingHorizontal: 20,
     fontSize: 16,
-    color: '#333',
+    color: pokemonThemeColors.textSecondary,
+    borderWidth: 2,
+    borderColor: pokemonThemeColors.logoBlue, // Borda azul na busca
   },
   searchResultContainer: {
     alignItems: 'center',
     padding: 20,
   },
-  // Card
   card: {
     flex: 1,
     margin: 8,
-    minWidth: '45%', // Garante 2 colunas
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    minWidth: '45%',
+    backgroundColor: pokemonThemeColors.cardBackground,
+    borderRadius: 15,
     padding: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
     borderWidth: 2,
-    borderColor: '#eee',
+    borderColor: 'transparent', // Será sobrescrito pela cor do tipo ou azul
   },
   cardImage: {
-    width: 120,
-    height: 120,
+    width: 110,
+    height: 110,
   },
   cardText: {
     marginTop: 8,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#333',
     textTransform: 'capitalize',
   },
-  // Skeleton
   skeletonContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -104,12 +129,11 @@ export const commonStyles = StyleSheet.create({
   skeletonCard: {
     flex: 1,
     minWidth: '45%',
-    height: 180, 
+    height: 160, 
     margin: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 12,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 15,
   },
-  // Erro
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -118,122 +142,143 @@ export const commonStyles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#d90429',
+    color: pokemonThemeColors.accent,
     textAlign: 'center',
     marginBottom: 20,
+    fontWeight: 'bold',
   },
-  // Offline
   offlineBanner: {
-    backgroundColor: '#ffb703',
+    backgroundColor: pokemonThemeColors.offlineWarning,
     padding: 10,
     alignItems: 'center',
   },
   offlineText: {
     color: '#333',
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
-  // Modal de Filtro
   modalBackdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(42, 117, 187, 0.6)', // Azul translúcido
   },
   modalContent: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '70%',
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    padding: 25,
+    maxHeight: '75%',
+    borderTopWidth: 5,
+    borderTopColor: pokemonThemeColors.logoYellow,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
+    color: pokemonThemeColors.logoBlue,
   },
   typeButton: {
     flex: 1,
-    margin: 5,
-    padding: 12,
-    borderRadius: 8,
+    margin: 6,
+    padding: 14,
+    borderRadius: 12,
     alignItems: 'center',
+    elevation: 2,
   },
   typeButtonText: {
     color: 'white',
     fontWeight: 'bold',
     textTransform: 'capitalize',
+    fontSize: 14,
   },
-  // Tela de Detalhes
+  // --- Detalhes ---
   detailContainer: {
     flex: 1,
   },
+  // A imagem agora terá um container transparente pois usaremos gradiente no fundo
   detailImageContainer: {
-    padding: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
     alignItems: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    zIndex: 1, // Ficar acima do card branco
   },
   detailImage: {
-    width: 250,
-    height: 250,
+    width: 280,
+    height: 280,
   },
   detailContent: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -30, 
-    paddingBottom: 40,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 50, // Espaço para a imagem sobrepor
+    paddingHorizontal: 25,
+    paddingBottom: 120, // Espaço para a barra de navegação
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    marginTop: -40, // Efeito de sobreposição
+    minHeight: 500, // Garante que o branco vá até o fundo
   },
   detailName: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
     textTransform: 'capitalize',
+    color: pokemonThemeColors.logoBlue,
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   detailSectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 5,
+    marginTop: 25,
+    marginBottom: 15,
+    color: '#333',
+    borderLeftWidth: 4,
+    borderLeftColor: pokemonThemeColors.logoYellow,
+    paddingLeft: 10,
   },
   typesContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
+    marginBottom: 10,
   },
   typeBadge: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    borderRadius: 15,
-    margin: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: 6,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   typeBadgeText: {
     color: 'white',
     fontWeight: 'bold',
     textTransform: 'capitalize',
+    fontSize: 16,
   },
   detailText: {
     fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
+    color: '#555',
+    lineHeight: 28,
     textTransform: 'capitalize',
+    marginLeft: 10,
   },
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   statName: {
-    fontSize: 16,
-    color: '#555',
+    fontSize: 15,
+    color: '#777',
     textTransform: 'capitalize',
-    width: 120,
+    width: 110,
+    fontWeight: '600',
   },
   statValue: {
     fontSize: 16,
@@ -241,16 +286,19 @@ export const commonStyles = StyleSheet.create({
     width: 40,
     textAlign: 'right',
     marginRight: 10,
+    color: '#333',
   },
   statBar: {
     flex: 1,
-    height: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
+    height: 12,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 6,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   statBarFill: {
     height: '100%',
-    borderRadius: 5,
+    borderRadius: 6,
   },
 });
